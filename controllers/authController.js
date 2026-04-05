@@ -14,11 +14,6 @@ const register = async (req, res, next) => {
   try {
     const { name, email, password, role, status } = req.body;
 
-    if (!name || !email || !password) {
-      res.status(400);
-      throw new Error("Name, email, and password are required.");
-    }
-
     const { user, token } = await registerUser({
       name,
       email,
@@ -44,11 +39,6 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      res.status(400);
-      throw new Error("Email and password are required.");
-    }
 
     const { user, token } = await loginUser({ email, password });
 
