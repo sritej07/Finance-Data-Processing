@@ -1,4 +1,5 @@
 const FinancialRecord = require("../models/FinancialRecord");
+const AppError = require("../utils/appError");
 
 const getOverviewStats = async () => {
   const [result] = await FinancialRecord.aggregate([
@@ -106,6 +107,10 @@ const getMonthlyTrends = async () => {
 };
 
 const getRecentTransactions = async (limit = 5) => {
+  if (limit <= 0) {
+    throw new AppError("Limit must be greater than 0.", 400);
+  }
+
   return FinancialRecord.aggregate([
     {
       $sort: {

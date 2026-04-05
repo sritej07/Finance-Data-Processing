@@ -4,69 +4,48 @@ const {
   getMonthlyTrends,
   getRecentTransactions
 } = require("../services/dashboardService");
+const asyncHandler = require("../utils/asyncHandler");
 
-const getDashboardOverview = async (req, res, next) => {
-  try {
-    const overview = await getOverviewStats();
+const getDashboardOverview = asyncHandler(async (req, res) => {
+  const overview = await getOverviewStats();
 
-    res.status(200).json({
-      success: true,
-      data: overview
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  res.status(200).json({
+    success: true,
+    data: overview
+  });
+});
 
-const getDashboardCategoryTotals = async (req, res, next) => {
-  try {
-    const categoryTotals = await getCategoryWiseTotals();
+const getDashboardCategoryTotals = asyncHandler(async (req, res) => {
+  const categoryTotals = await getCategoryWiseTotals();
 
-    res.status(200).json({
-      success: true,
-      count: categoryTotals.length,
-      data: categoryTotals
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  res.status(200).json({
+    success: true,
+    count: categoryTotals.length,
+    data: categoryTotals
+  });
+});
 
-const getDashboardMonthlyTrends = async (req, res, next) => {
-  try {
-    const monthlyTrends = await getMonthlyTrends();
+const getDashboardMonthlyTrends = asyncHandler(async (req, res) => {
+  const monthlyTrends = await getMonthlyTrends();
 
-    res.status(200).json({
-      success: true,
-      count: monthlyTrends.length,
-      data: monthlyTrends
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  res.status(200).json({
+    success: true,
+    count: monthlyTrends.length,
+    data: monthlyTrends
+  });
+});
 
-const getDashboardRecentTransactions = async (req, res, next) => {
-  try {
-    const parsedLimit = Number.parseInt(req.query.limit, 10);
-    const limit = Number.isNaN(parsedLimit) ? 5 : parsedLimit;
+const getDashboardRecentTransactions = asyncHandler(async (req, res) => {
+  const parsedLimit = Number.parseInt(req.query.limit, 10);
+  const limit = Number.isNaN(parsedLimit) ? 5 : parsedLimit;
+  const recentTransactions = await getRecentTransactions(limit);
 
-    if (limit <= 0) {
-      res.status(400);
-      throw new Error("Limit must be greater than 0.");
-    }
-
-    const recentTransactions = await getRecentTransactions(limit);
-
-    res.status(200).json({
-      success: true,
-      count: recentTransactions.length,
-      data: recentTransactions
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  res.status(200).json({
+    success: true,
+    count: recentTransactions.length,
+    data: recentTransactions
+  });
+});
 
 module.exports = {
   getDashboardOverview,

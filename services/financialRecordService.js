@@ -1,4 +1,5 @@
 const FinancialRecord = require("../models/FinancialRecord");
+const AppError = require("../utils/appError");
 
 const buildRecordFilters = ({ date, category, type }) => {
   const filters = {};
@@ -45,14 +46,26 @@ const getFinancialRecordById = async (recordId) => {
 };
 
 const updateFinancialRecord = async (recordId, updates) => {
-  return FinancialRecord.findByIdAndUpdate(recordId, updates, {
+  const updatedRecord = await FinancialRecord.findByIdAndUpdate(recordId, updates, {
     new: true,
     runValidators: true
   }).populate("createdBy", "name email role");
+
+  if (!updatedRecord) {
+    throw new AppError("Financial record not found.", 404);
+  }
+
+  return updatedRecord;
 };
 
 const deleteFinancialRecord = async (recordId) => {
-  return FinancialRecord.findByIdAndDelete(recordId);
+  const deletedRecord = await FinancialRecord.findByIdAndDelete(recordId);
+
+  if (!deletedRecord) {
+    throw new AppError("Financial record not found.", 404);
+  }
+
+  return deletedRecord;
 };
 
 module.exports = {

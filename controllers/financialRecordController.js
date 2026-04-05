@@ -1,93 +1,52 @@
 const {
   createFinancialRecord,
   getFinancialRecords,
-  getFinancialRecordById,
   updateFinancialRecord,
   deleteFinancialRecord
 } = require("../services/financialRecordService");
+const asyncHandler = require("../utils/asyncHandler");
 
-const createRecord = async (req, res, next) => {
-  try {
-    const { amount, type, category, date, notes } = req.body;
+const createRecord = asyncHandler(async (req, res) => {
+  const record = await createFinancialRecord({
+    ...req.body,
+    createdBy: req.user._id
+  });
 
-    const record = await createFinancialRecord({
-      amount,
-      type,
-      category,
-      date,
-      notes,
-      createdBy: req.user._id
-    });
+  res.status(201).json({
+    success: true,
+    message: "Financial record created successfully.",
+    data: record
+  });
+});
 
-    res.status(201).json({
-      success: true,
-      message: "Financial record created successfully.",
-      data: record
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+const getRecords = asyncHandler(async (req, res) => {
+  const records = await getFinancialRecords(req.query);
 
-const getRecords = async (req, res, next) => {
-  try {
-    const { date, category, type } = req.query;
-    const records = await getFinancialRecords({ date, category, type });
+  res.status(200).json({
+    success: true,
+    count: records.length,
+    data: records
+  });
+});
 
-    res.status(200).json({
-      success: true,
-      count: records.length,
-      data: records
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+const updateRecord = asyncHandler(async (req, res) => {
+  const updatedRecord = await updateFinancialRecord(req.params.id, req.body);
 
-const updateRecord = async (req, res, next) => {
-  try {
-    const { id } = req.params;
+  res.status(200).json({
+    success: true,
+    message: "Financial record updated successfully.",
+    data: updatedRecord
+  });
+});
 
-    const existingRecord = await getFinancialRecordById(id);
+const deleteRecord = asyncHandler(async (req, res) => {
+  await deleteFinancialRecord(req.params.id);
 
-    if (!existingRecord) {
-      res.status(404);
-      throw new Error("Financial record not found.");
-    }
-
-    const updatedRecord = await updateFinancialRecord(id, req.body);
-
-    res.status(200).json({
-      success: true,
-      message: "Financial record updated successfully.",
-      data: updatedRecord
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const deleteRecord = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-
-    const existingRecord = await getFinancialRecordById(id);
-
-    if (!existingRecord) {
-      res.status(404);
-      throw new Error("Financial record not found.");
-    }
-
-    await deleteFinancialRecord(id);
-
-    res.status(200).json({
-      success: true,
-      message: "Financial record deleted successfully."
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  res.status(200).json({
+    success: true,
+    message: "Financial record deleted successfully."
+  });
+});
 
 module.exports = {
   createRecord,
