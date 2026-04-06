@@ -1,5 +1,6 @@
 const FinancialRecord = require("../models/FinancialRecord");
 const AppError = require("../utils/appError");
+const { invalidateDashboardCache } = require("./cacheService");
 
 const buildRecordFilters = ({ date, category, type }) => {
   const filters = {};
@@ -30,7 +31,9 @@ const buildRecordFilters = ({ date, category, type }) => {
 };
 
 const createFinancialRecord = async (payload) => {
-  return FinancialRecord.create(payload);
+  const record = await FinancialRecord.create(payload);
+  await invalidateDashboardCache();
+  return record;
 };
 
 const getFinancialRecords = async (queryParams) => {
@@ -55,6 +58,7 @@ const updateFinancialRecord = async (recordId, updates) => {
     throw new AppError("Financial record not found.", 404);
   }
 
+  await invalidateDashboardCache();
   return updatedRecord;
 };
 
@@ -65,6 +69,7 @@ const deleteFinancialRecord = async (recordId) => {
     throw new AppError("Financial record not found.", 404);
   }
 
+  await invalidateDashboardCache();
   return deletedRecord;
 };
 

@@ -1,22 +1,20 @@
 const {
-  getOverviewStats,
-  getCategoryWiseTotals,
-  getMonthlyTrends,
-  getRecentTransactions
+  getCachedDashboardSnapshot
 } = require("../services/dashboardService");
 const asyncHandler = require("../utils/asyncHandler");
 
 const getDashboardOverview = asyncHandler(async (req, res) => {
-  const overview = await getOverviewStats();
+  const dashboardSnapshot = await getCachedDashboardSnapshot(req.user.id);
 
   res.status(200).json({
     success: true,
-    data: overview
+    data: dashboardSnapshot.overview
   });
 });
 
 const getDashboardCategoryTotals = asyncHandler(async (req, res) => {
-  const categoryTotals = await getCategoryWiseTotals();
+  const dashboardSnapshot = await getCachedDashboardSnapshot(req.user.id);
+  const categoryTotals = dashboardSnapshot.categoryTotals;
 
   res.status(200).json({
     success: true,
@@ -26,7 +24,8 @@ const getDashboardCategoryTotals = asyncHandler(async (req, res) => {
 });
 
 const getDashboardMonthlyTrends = asyncHandler(async (req, res) => {
-  const monthlyTrends = await getMonthlyTrends();
+  const dashboardSnapshot = await getCachedDashboardSnapshot(req.user.id);
+  const monthlyTrends = dashboardSnapshot.monthlyTrends;
 
   res.status(200).json({
     success: true,
@@ -38,7 +37,14 @@ const getDashboardMonthlyTrends = asyncHandler(async (req, res) => {
 const getDashboardRecentTransactions = asyncHandler(async (req, res) => {
   const parsedLimit = Number.parseInt(req.query.limit, 10);
   const limit = Number.isNaN(parsedLimit) ? 5 : parsedLimit;
-  const recentTransactions = await getRecentTransactions(limit);
+
+  if (limit <= 0) {
+    res.status(400);
+    throw new Error("Limit must be greater than 0.");
+  }
+
+  const dashboardSnapshot = await getCachedDashboardSnapshot(req.user.id);
+  const recentTransactions = dashboardSnapshot.recentTransactions.slice(0, limit);
 
   res.status(200).json({
     success: true,

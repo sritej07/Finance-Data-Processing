@@ -1,5 +1,6 @@
 const FinancialRecord = require("../models/FinancialRecord");
 const AppError = require("../utils/appError");
+const { getDashboardCache, setDashboardCache } = require("./cacheService");
 
 const getOverviewStats = async () => {
   const [result] = await FinancialRecord.aggregate([
@@ -155,9 +156,39 @@ const getRecentTransactions = async (limit = 5) => {
   ]);
 };
 
+const buildDashboardSnapshot = async () => {
+  const [overview, categoryTotals, monthlyTrends, recentTransactions] = await Promise.all([
+    getOverviewStats(),
+    getCategoryWiseTotals(),
+    getMonthlyTrends(),
+    getRecentTransactions(20)
+  ]);
+
+  return {
+    overview,
+    categoryTotals,
+    monthlyTrends,
+    recentTransactions
+  };
+};
+
+const getCachedDashboardSnapshot = async (userId) => {
+  const cachedSnapshot = await getDashboardCache(userId);
+
+  if (cachedSnapshot) {
+    return cachedSnapshot;
+  }
+
+  const snapshot = await buildDashboardSnapshot();
+  await setDashboardCache(userId, snapshot);
+
+  return snapshot;
+};
+
 module.exports = {
   getOverviewStats,
   getCategoryWiseTotals,
   getMonthlyTrends,
-  getRecentTransactions
+  getRecentTransactions,
+  getCachedDashboardSnapshot
 };
